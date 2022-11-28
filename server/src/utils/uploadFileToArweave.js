@@ -4,7 +4,7 @@ import fs from "fs";
 
 dotenv.config();
 
-const { kty, n, e, d, p, q, dp, dq, qi } = process.env
+const { kty, n, e, d, p, q, dp, dq, qi } = process.env;
 
 const ARWEAVE_KEY = { kty, n, e, d, p, q, dp, dq, qi };
 
@@ -43,24 +43,20 @@ const uploadFileToArweave = async (filePath, mimetype) => {
       console.log("The balance is getting low");
     }
     //create a transaction:
-    console.log("1");
     let data = fs.readFileSync(filePath);
-    console.log("2");
     let transaction = await arweave.createTransaction(
       { data: data },
       ARWEAVE_KEY
     );
     transaction.addTag("Content-Type", mimetype);
     //sign the transaction
-    console.log("3");
+
     await arweave.transactions.sign(transaction, ARWEAVE_KEY);
-    console.log("4");
+
     let uploader = await arweave.transactions.getUploader(transaction);
-    console.log("5");
+
     while (!uploader.isComplete) {
-      console.log("6");
       await uploader.uploadChunk();
-      console.log("7");
       console.log(
         `${uploader.pctComplete}% complete, ${uploader.uploadedChunks}/${uploader.totalChunks}`
       );

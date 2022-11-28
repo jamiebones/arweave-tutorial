@@ -1,39 +1,13 @@
 import "./App.css";
 import { useState, useRef } from "react";
 import axios from "axios";
-import Arweave from "arweave";
-
-const arweave = Arweave.init({});
 
 function App() {
   const [file, setFile] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-  const [progressStatus, setProgressStatus] = useState(0);
+  const [transactionID, setTransactionID] = useState("");
 
   const fileRef = useRef();
-
-  // async function getData(transactionId) {
-  //   try {
-  //     let data = await arweave.transactions.getData(transactionId, {
-  //       decode: true,
-  //       string: true,
-  //     });
-  //     console.log("data", data);
-  //     data = JSON.parse(data);
-  //     setData(data);
-  //   } catch (error) {
-  //     console.log("error message", error);
-  //   }
-  // }
-
-  // async function getStatus(transactionId) {
-  //   try {
-  //     let data = await arweave.transactions.getStatus(transactionId);
-  //     console.log("data", data);
-  //   } catch (error) {
-  //     console.log("error message", error);
-  //   }
-  // }
 
   const onFileChange = (e) => {
     const file = e.target.files[0];
@@ -45,6 +19,7 @@ function App() {
     const index = extention.indexOf(fileExt);
     if (index == -1) {
       window.alert(`file extension not supported.`);
+      fileRef.current.value = "";
       return;
     }
     //save the file here
@@ -62,39 +37,24 @@ function App() {
         method: "post",
         url: "http://localhost:4000/api/uploadFile",
         data: formData,
-        onUploadProgress: (ProgressEvent) => {
-          setProgressStatus(
-            parseFloat(
-              (ProgressEvent.loaded / ProgressEvent.total) * 100
-            ).toFixed(2)
-          );
-        },
       });
+
       setSubmitted(false);
       fileRef.current.value = "";
       setFile(null);
 
-      const jsonData = res.data;
-
-      console.log("json data", jsonData);
-
-      //const { response, transactionId } = jsonData;
+      const transID = res.data;
+      setTransactionID(transID);
+      console.log("transaction ID 🏹 ", transID);
     } catch (error) {
       console.log("error message", error);
     }
   };
 
-  // const getTransactionData = async () => {
-  //   await getData(transID);
-  // };
-
-  // const getTransactionStatus = async () => {
-  //   await getStatus(transID);
-  // };
-
   return (
     <div className="App">
       <div className="div">
+        <h1>Select a File to Upload To Arweave</h1>
         <form onSubmit={handleFormSubmit}>
           <input
             type="file"
@@ -105,23 +65,17 @@ function App() {
           />
           <br />
           <br />
-          {submitted && (
-            <div className="progress mb-3">
-              <div
-                className="progress-bar"
-                role="progressbar"
-                style={{ width: progressStatus + "%" }}
-                aria-valuenow={progressStatus}
-                aria-valuemin="0"
-                aria-valuemax="100"
-              ></div>
-            </div>
-          )}
 
-          <button type="submit">Upload File</button>
+          <button type="submit" disabled={submitted}>
+            Upload File to Arweave
+          </button>
         </form>
 
-        <div className="result"></div>
+        {transactionID && (
+          <div className="result">
+            <p>Transaction ID : {transactionID}</p>
+          </div>
+        )}
       </div>
     </div>
   );
